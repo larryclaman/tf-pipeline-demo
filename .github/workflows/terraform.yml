@@ -72,24 +72,38 @@ jobs:
         path: tfplan
       
     # If this is a PR post the changes
+    # - name: Push Terraform Output to PR
+    #   if: github.ref != 'refs/heads/main'
+      # uses: actions/github-script@v2
+      # env:
+      #     PLAN: "${{ steps.tf-plan.outputs.stderr }}\n${{ steps.tf-plan.outputs.stdout }}"
+      # with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #          const output = ` ### Terraform Plan Report
+
+      #           \`\`\`${process.env.PLAN}\`\`\` `;
+
+      #           github.issues.createComment({
+      #               issue_number: context.issue.number,
+      #               owner: context.repo.owner,
+      #               repo: context.repo.repo,
+      #               body: output
+      #            })
+
     - name: Push Terraform Output to PR
       if: github.ref != 'refs/heads/main'
-      uses: actions/github-script@v2
       env:
-          PLAN: "${{ steps.tf-plan.outputs.stderr }}\n${{ steps.tf-plan.outputs.stdout }}"
-      with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-               const output = ` ### Terraform Plan Report
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        PLAN: "${{ steps.tf-plan.outputs.stderr }}\n${{ steps.tf-plan.outputs.stdout }}"
+      run: |
+          title="Terraform Plan Report ${{ github.run_number }}"
+          body="${{ env.PLAN }}  
+          Build Number: ${{ github.run_number }} 
+          Build Log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} 
+          SHA: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})"
+          gh issue create --title "$title" --body "$body"
 
-                \`\`\`${process.env.PLAN}\`\`\` `;
-
-                github.issues.createComment({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: output
-                 })
 
   terraform-apply:
     name: 'Terraform Apply'
