@@ -17,6 +17,7 @@ env:
   ARM_TENANT_ID: "${{ secrets.ARM_TENANT_ID }}"
   GITHUB_OWNER: "${{ github.repository_owner }}"
   TF_VAR_repo_full_name: "${{ github.repository }}"
+  TFSTATE_SA: "tfpipelinedemostatelnc"
 
 # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
 defaults:
@@ -41,8 +42,9 @@ jobs:
       uses: hashicorp/setup-terraform@v1
       
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    # Override the storage account name using env variable
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -backend-config="storage_account_name=${{env.TFSTATE_SA}}" 
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
